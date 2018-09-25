@@ -1,6 +1,21 @@
 const request = require('request');
 const cheerio = require('cheerio');
 
+const sampleQuery = {
+  $searchList: {
+    url: 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=',
+    operand: '+',
+    linksIdent: ['td', 'a'],
+    getRequests: 1,
+    get: [{
+      type: 'text',
+      identifier: ['div', '.price-card-name-header-name']
+    }]
+  }
+};
+
+const searchTrigger = '$searchList';
+
 // Generates identifier string out of query array.
 function genIdentifier(query) {
   let identifier = '';
@@ -41,14 +56,56 @@ function requestAndDo(url, callback) {
   });
 }
 
-module.exports = {
-  // Prototype search function.
-  search: function search() {
-    return new Promise((resolve, reject) => {
-      const url = 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=consuming+aberration';
+function search() {
+  return new Promise((resolve, reject) => {
+    const url = 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=consuming+aberration';
 
-      requestAndDo(url, ($, err) => {
-        const links = getLinks($, ['td', 'a']);
+    requestAndDo(url, ($, err) => {
+      const links = getLinks($, ['td', 'a']);
+      const cardurl = `https://www.mtggoldfish.com${links[0]}`;
+
+      if (err) {
+        reject(err);
+      }
+
+      requestAndDo(cardurl, ($$, error) => {
+        let scraped = scrapeText($$, ['div', '.price-card-name-header-name']);
+
+        if (error) {
+          reject(error);
+        }
+
+        scraped = scraped.trim();
+        resolve(scraped);
+      });
+    });
+  });
+}
+
+function readQuery() {
+  return new Promise((resolve, reject) => {
+    let searchQuery = 'consuming aberration';
+    const searchList = sampleQuery[searchTrigger] ? sampleQuery.$searchList : null;
+
+    if (searchList !== null) {
+      const linksIdent = searchList.linksIdent;
+      let searchURL = searchList.url;
+
+      searchQuery = search.split(' ');
+
+      if (searchQuery.length > 1) {
+        for (let i = 0; i < search.length; i += 1) {
+          searchURL += searchQuery[i];
+          if (i < search.length - 1) {
+            searchURL += searchList.operand;
+          }
+        }
+      } else {
+        searchURL += search[0];
+      }
+
+      requestAndDo(searchURL, ($, err) => {
+        const links = getLinks($, linksIdent);
         const cardurl = `https://www.mtggoldfish.com${links[0]}`;
 
         if (err) {
@@ -66,6 +123,11 @@ module.exports = {
           resolve(scraped);
         });
       });
-    });
-  }
+    }
+  });
+}
+
+module.exports = {
+  search,
+  readQuery
 };
