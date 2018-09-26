@@ -91,12 +91,12 @@ function readQuery() {
       const linksIdent = searchList.linksIdent;
       let searchURL = searchList.url;
 
-      searchQuery = search.split(' ');
+      searchQuery = searchQuery.split(' ');
 
       if (searchQuery.length > 1) {
-        for (let i = 0; i < search.length; i += 1) {
+        for (let i = 0; i < searchQuery.length; i += 1) {
           searchURL += searchQuery[i];
-          if (i < search.length - 1) {
+          if (i < searchQuery.length - 1) {
             searchURL += searchList.operand;
           }
         }

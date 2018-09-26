@@ -14,6 +14,6 @@ after((done) => {
   done();
 });
 
-describe('Thing APIs', () => {
+describe('scrapes via search query', () => {
   // #TODO: Implement thing.test.js.
 });
