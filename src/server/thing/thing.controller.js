@@ -2,8 +2,8 @@ const request = require('request');
 const cheerio = require('cheerio');
 
 const sampleQuery = {
-  $searchList: {
-    url: 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=',
+  $searchSite: {
+    searchURL: 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=',
     operand: '+',
     linksIdent: ['td', 'a'],
     getRequests: 1,
@@ -13,8 +13,6 @@ const sampleQuery = {
     }]
   }
 };
-
-const searchTrigger = '$searchList';
 
 // Generates identifier string out of query array.
 function genIdentifier(query) {
@@ -34,19 +32,6 @@ function scrapeText($, query) {
   return $(identifier).text();
 }
 
-// Gets a list of links to scrape deeper.
-function getLinks($, query, attr = 'href') {
-  const identifier = genIdentifier(query);
-  const data = $(identifier).toArray();
-  const links = [];
-
-  for (let i = 0; i < data.length; i += 1) {
-    links.push(data[i].attribs[attr]);
-  }
-
-  return links;
-}
-
 // Sends a request and exectues a callback.
 function requestAndDo(url, callback) {
   request(url, (error, response, html) => {
@@ -56,78 +41,69 @@ function requestAndDo(url, callback) {
   });
 }
 
-function search() {
+// Gets a list of links to scrape deeper.
+function getLinks(url, query, attr = 'href') {
   return new Promise((resolve, reject) => {
-    const url = 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=consuming+aberration';
-
-    requestAndDo(url, ($, err) => {
-      const links = getLinks($, ['td', 'a']);
-      const cardurl = `https://www.mtggoldfish.com${links[0]}`;
-
-      if (err) {
-        reject(err);
+    requestAndDo(url, ($, error) => {
+      if (error) {
+        reject(error);
       }
 
-      requestAndDo(cardurl, ($$, error) => {
-        let scraped = scrapeText($$, ['div', '.price-card-name-header-name']);
+      const identifier = genIdentifier(query);
+      const data = $(identifier).toArray();
+      const links = [];
 
-        if (error) {
-          reject(error);
-        }
+      for (let i = 0; i < data.length; i += 1) {
+        links.push(data[i].attribs[attr]);
+      }
 
-        scraped = scraped.trim();
-        resolve(scraped);
-      });
+      resolve(links);
     });
   });
 }
 
-function readQuery() {
+function genSearchURL(baseURL, query, operand) {
+  const searchQuery = query.split(' ');
+  let searchURL = baseURL;
+
+  for (let i = 0; i < searchQuery.length; i += 1) {
+    searchURL += searchQuery[i];
+    if (i < searchQuery.length - 1) {
+      searchURL += operand;
+    }
+  }
+
+  return searchURL;
+}
+
+function processSearch() {
   return new Promise((resolve, reject) => {
-    let searchQuery = 'consuming aberration';
-    const searchList = sampleQuery[searchTrigger] ? sampleQuery.$searchList : null;
+    const searchModel = sampleQuery.$searchSite;
+    const searchQuery = 'consuming aberration';
 
-    if (searchList !== null) {
-      const linksIdent = searchList.linksIdent;
-      let searchURL = searchList.url;
+    const searchURL = genSearchURL(searchModel.searchURL, searchQuery, searchModel.operand);
 
-      searchQuery = searchQuery.split(' ');
-
-      if (searchQuery.length > 1) {
-        for (let i = 0; i < searchQuery.length; i += 1) {
-          searchURL += searchQuery[i];
-          if (i < searchQuery.length - 1) {
-            searchURL += searchList.operand;
-          }
-        }
-      } else {
-        searchURL += search[0];
-      }
-
-      requestAndDo(searchURL, ($, err) => {
-        const links = getLinks($, linksIdent);
-        const cardurl = `https://www.mtggoldfish.com${links[0]}`;
-
-        if (err) {
-          reject(err);
-        }
-
-        requestAndDo(cardurl, ($$, error) => {
-          let scraped = scrapeText($$, ['div', '.price-card-name-header-name']);
-
+    // get search links
+    getLinks(searchURL, searchModel.linksIdent).then((links) => {
+      // TODO: replace 1 with links.length
+      for (let i = 0; i < 1; i += 1) {
+        requestAndDo(`https://www.mtggoldfish.com${links[i]}`, ($, error) => {
           if (error) {
             reject(error);
           }
 
-          scraped = scraped.trim();
-          resolve(scraped);
+          // TODO: iterate through gets, check for type
+          let text = scrapeText($, searchModel.get[0].identifier);
+          text = text.trim();
+          resolve(text);
         });
-      });
-    }
+      }
+    }).catch((error) => {
+      reject(error);
+    });
   });
 }
 
 module.exports = {
-  search,
-  readQuery
+  processSearch
 };
