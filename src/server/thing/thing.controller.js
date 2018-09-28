@@ -26,13 +26,11 @@ function genIdentifier(query) {
   return identifier;
 }
 
-// Returns text value of an element.
 function scrapeText($, query) {
   const identifier = genIdentifier(query);
   return $(identifier).text();
 }
 
-// Sends a request and exectues a callback.
 function requestAndDo(url, callback) {
   request(url, (error, response, html) => {
     const $ = cheerio.load(html);
@@ -41,7 +39,20 @@ function requestAndDo(url, callback) {
   });
 }
 
-// Gets a list of links to scrape deeper.
+function genSearchURL(baseURL, query, operand) {
+  const searchQuery = query.split(' ');
+  let searchURL = baseURL;
+
+  for (let i = 0; i < searchQuery.length; i += 1) {
+    searchURL += searchQuery[i];
+    if (i < searchQuery.length - 1) {
+      searchURL += operand;
+    }
+  }
+
+  return searchURL;
+}
+
 function getLinks(url, query, attr = 'href') {
   return new Promise((resolve, reject) => {
     requestAndDo(url, ($, error) => {
@@ -60,20 +71,6 @@ function getLinks(url, query, attr = 'href') {
       resolve(links);
     });
   });
-}
-
-function genSearchURL(baseURL, query, operand) {
-  const searchQuery = query.split(' ');
-  let searchURL = baseURL;
-
-  for (let i = 0; i < searchQuery.length; i += 1) {
-    searchURL += searchQuery[i];
-    if (i < searchQuery.length - 1) {
-      searchURL += operand;
-    }
-  }
-
-  return searchURL;
 }
 
 function processSearch() {
