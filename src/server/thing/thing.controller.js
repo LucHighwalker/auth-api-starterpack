@@ -1,6 +1,8 @@
 const request = require('request');
 const cheerio = require('cheerio');
 
+const dm = require('../dataManager/dataManager.controller');
+
 const sampleQuery = {
   $searchSite: {
     searchURL: 'https://www.mtggoldfish.com/q?utf8=%E2%9C%93&query_string=',
@@ -92,7 +94,16 @@ function processSearch() {
           // TODO: iterate through gets, check for type
           let text = scrapeText($, searchModel.get[0].identifier);
           text = text.trim();
-          resolve(text);
+          dm.queueData({
+            name: 'title',
+            value: text
+          });
+          dm.generateData('reply').then((model) => {
+            resolve(model);
+          }).catch((error) => {
+            console.error(error);
+            reject(error);
+          })
         });
       }
     }).catch((error) => {

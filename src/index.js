@@ -18,6 +18,9 @@ mongoose.connect(
 mongoose.connection.on('error', () => {
   throw new Error(`unable to connect to database: ${mongoUri}`);
 });
+mongoose.connection.once('open', () => {
+  console.log('database connected');
+});
 
 // print mongoose logs in dev env
 if (config.mongooseDebug) {
