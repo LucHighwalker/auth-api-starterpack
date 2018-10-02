@@ -86,9 +86,9 @@ function processSearch() {
     getLinks(searchURL, searchModel.linksIdent).then((links) => {
       // TODO: replace 1 with links.length
       for (let i = 0; i < 1; i += 1) {
-        requestAndDo(`https://www.mtggoldfish.com${links[i]}`, ($, error) => {
-          if (error) {
-            reject(error);
+        requestAndDo(`https://www.mtggoldfish.com${links[i]}`, ($, err) => {
+          if (err) {
+            reject(err);
           }
 
           // TODO: iterate through gets, check for type
@@ -101,9 +101,8 @@ function processSearch() {
           dm.generateData('reply').then((model) => {
             resolve(model);
           }).catch((error) => {
-            console.error(error);
             reject(error);
-          })
+          });
         });
       }
     }).catch((error) => {

@@ -11,12 +11,12 @@ function getOne(model, id) {
 }
 
 function getAll(model, search = null) {
-  var query = {}
+  const query = {};
 
   if (search) {
     query.$text = {
       $search: search
-    }
+    };
   }
 
   return new Promise((resolve, reject) => {
@@ -31,18 +31,19 @@ function getAll(model, search = null) {
 }
 
 function save(model) {
+  const modelRef = model;
   return new Promise((resolve, reject) => {
     const now = new Date();
-    model.updatedAt = now;
-    if (!model.createdAt) {
-      model.createdAt = now;
+    modelRef.updatedAt = now;
+    if (!modelRef.createdAt) {
+      modelRef.createdAt = now;
     }
 
-    model.save((error) => {
+    modelRef.save((error) => {
       if (error) {
         reject(error);
       } else {
-        resolve(model);
+        resolve(modelRef);
       }
     });
   });
