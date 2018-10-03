@@ -16,6 +16,29 @@ const sampleQuery = {
   }
 };
 
+// const newQuery = {
+//   $site: {
+//     baseURL: 'https://www.mtggoldfish.com',
+//     $search: {
+//       $pullData: [{
+//           from: ['.price-card-name-header-name'],
+//           get: {
+//             type: String,
+//             name: 'title'
+//           }
+//         },
+//         {
+//           from: ['table', 'tr', 'td'],
+//           get: {
+//             type: Float32Array,
+//             name: 'price'
+//           }
+//         }
+//       ]
+//     }
+//   }
+// }
+
 // Generates identifier string out of query array.
 function genIdentifier(query) {
   let identifier = '';
