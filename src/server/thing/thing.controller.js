@@ -20,7 +20,7 @@ const newQuery = {
       }
     },
     {
-      from: ['table', 'tr', 'td'],
+      from: ['table', 'tr', '.text-right'],
       get: {
         type: Float32Array,
         name: 'price'
@@ -93,10 +93,11 @@ function pullData(url, pullArray) {
               data.value = data.value.trim();
               break;
 
+              // still broken
             case Float32Array:
               data.name = get.name;
-              data.value = 420;
-              // data[get.name] = $(from).Float32Array;
+              data.value = $(from).text();
+              data.value = parseFloat(data.value);
               break;
 
             default:
@@ -128,7 +129,7 @@ function processSearch(url, searchObj, searchQuery, pullArray) {
           const links = getLinks(list);
           for (let i = 0; i < 1; i += 1) {
             pullData(`${url}${links[i]}`, pullArray).then(() => {
-              dm.generateData('refactorTest', 'testing').then((data) => {
+              dm.generateData('blahh', 'testing').then((data) => {
                 resolve(data);
               }).catch((error) => { // eslint-disable-line no-shadow
                 reject(error);
