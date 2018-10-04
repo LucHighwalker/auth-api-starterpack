@@ -6,7 +6,7 @@ const router = express.Router(); // eslint-disable-line new-cap
 router.route('/');
 
 router.get('/scrape', (req, res) => {
-  controller.processSearch().then((json) => {
+  controller.scrapeData('consuming aberration').then((json) => {
     res.json({
       json
     });

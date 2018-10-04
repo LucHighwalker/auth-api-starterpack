@@ -3,31 +3,35 @@ const mongoose = require('mongoose');
 
 const GenerateSchema = require('generate-schema');
 
-let dataQueue = [];
+let dataQueue = {};
 
 function getModel(modelName, data) {
   try {
     return mongoose.model(modelName);
   } catch (error) {
     const schema = GenerateSchema.mongoose(data);
-    return mongoose.model(modelName, schema[0]);
+    return mongoose.model(modelName, schema);
   }
 }
 
-function queueData(data) {
-  dataQueue.push(data);
+function queueData(name, data) {
+  if (dataQueue[name] === undefined) {
+    dataQueue[name] = [];
+  }
+
+  dataQueue[name].push(data);
 }
 
 function queueReset() {
-  dataQueue = [];
+  dataQueue = {};
 }
 
-function generateData(modelName, save = true) {
+function generateData(modelName, dataName, save = true) {
   return new Promise((resolve, reject) => {
     const returnData = {};
 
-    for (let i = 0; i < dataQueue.length; i += 1) {
-      const data = dataQueue[i];
+    for (let i = 0; i < dataQueue[dataName].length; i += 1) {
+      const data = dataQueue[dataName][i];
       const existing = returnData[data.name];
 
       if (!existing) {
@@ -37,7 +41,7 @@ function generateData(modelName, save = true) {
       }
     }
 
-    const Model = getModel(modelName, [returnData]);
+    const Model = getModel(modelName, returnData);
     const dataModel = new Model(returnData);
 
     if (save) {
