@@ -1,12 +1,8 @@
-# Installation
-
-## Install with npm
+# Install with npm
 
 Simply run `npm install magicData --save` in your project directory. 
 
-# Usage
-
-## Getting started 
+# Getting started 
 
 To configure a website, you should be familiar with some sort of browser developer tools such as in [Chrome](https://developers.google.com/web/tools/chrome-devtools/ "developer tools")
 
@@ -38,56 +34,56 @@ $sites: [{
   }]
 ```
 
-## Writing a query
+# Writing a query
 
-### Keys
+## Keys
 
-#### $sites
+### $sites
 
 The first key `$sites` is pretty self explanatory. This is an array of queries, one for each website that you want magicData to scrape data from. 
 
-#### baseURL 
+### baseURL 
 
 This key is also pretty self explanatory. This is the base url of the website. In this case `https://www.mtggoldfish.com`.
 
 ?> **Important** Notice the lack of a `/` at the end of the base url.
 
-#### $search 
+### $search 
 
 This key tells magicData that this website has a search feature, and it should search through the website for matching documents. 
 
-##### searchURL
+#### searchURL
 
 Search url gets added to the base url in order to generate a search query url.
 
-##### queryTemplate
+#### queryTemplate
 
 Query template lets magic data know how the words in the search query should look. It will replace `{-}` with each word in the search query. In the case of mtgGoldfish, the query words aren't formatted in any special way. So `{-}` will do. However, some sites, may format their queries differnetly. For example Wizard's own [magic database](http://gatherer.wizards.com/ "gatherer"), the terms are put in brackets. So the template would look like `[{-}]`. 
 
-##### queryOperand
+#### queryOperand
 
 Query operand does exactly what it says it does. It is the operand added between each search term to generate a complete search url. 
 
-##### listIdentifier
+#### listIdentifier
 
 This lets magicData know what a search result should look like. This is useful for websites, which automatically redirect to a result when there is only one possible result. If these identifiers are not found, magicData will assume that the result is displayed, and automatically attempt to pull data from the website. Otherwise, it will follow each link and create a composite of the data available. 
 
-#### $pullData
+### $pullData
 
 $pullData is an array of pull objects, which lets magicData know what data should be retrieved from each site. Each pull data has 2 values, `from` and an object `get`.
 
-##### from
+#### from
 
 From works similarly to listIdentifier. It works as the identifier for whatever data you're trying to pull.
 
-##### get
+#### get
 
 Get is an object which lets magicData know what data should be pulled. It has 2 values `type` and `name`.
 
-###### type
+##### type
 
 Type simply lets magicData know what type of data should be expected. If the data type doesn't match, it will be thrown out. 
 
-###### name
+##### name
 
 This will be the name given to this particular data set in the generated document. 
