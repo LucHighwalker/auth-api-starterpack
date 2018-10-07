@@ -20,10 +20,12 @@ const newQuery = {
       }
     },
     {
-      from: ['table', 'tr', '.text-right'],
+      from: ['.price-card-statistics-paper', 'table', 'tr', '.text-right'],
       get: {
-        type: Float32Array,
-        name: 'price'
+        type: String,
+        name: ['spread', 'Highest Buylist', 'Foil Multiplier', 'Daily Change',
+          'Weekly Change', 'Highest Price', 'Lowest Price'
+        ]
       }
     }]
   }]
@@ -84,27 +86,42 @@ function pullData(url, pullArray) {
           const get = pullArray[i].get;
           const from = genIdentifier(pullArray[i].from);
 
-          const data = {};
+          let data = {};
 
           switch (get.type) {
             case String:
-              data.name = get.name;
-              data.value = $(from).text();
-              data.value = data.value.trim();
+              if (Array.isArray(get.name)) {
+                const values = $(from).toArray();
+
+                for (let o = 0; o < values.length; o += 1) {
+                  const name = get.name[o] ? get.name[o] : null;
+
+                  data.name = name;
+                  data.value = $(values[o]).text();
+                  data.value = data.value.trim();
+                  dm.queueData('testing', data);
+                  data = {};
+                }
+              } else {
+                data.name = get.name;
+                data.value = $(from).text();
+                data.value = data.value.trim();
+                dm.queueData('testing', data);
+                data = {};
+              }
               break;
 
               // still broken
             case Float32Array:
               data.name = get.name;
               data.value = $(from).text();
-              data.value = parseFloat(data.value);
+              dm.queueData('testing', data);
+              data = {};
               break;
 
             default:
               break;
           }
-
-          dm.queueData('testing', data);
         }
 
         resolve();
@@ -125,7 +142,7 @@ function processSearch(url, searchObj, searchQuery, pullArray) {
         const list = $(listIdentifier).toArray();
 
         if (list.length > 1) {
-          // add option to fuse data or spit multiple results out.
+          // TODO: add option to fuse data or spit multiple results out.
           const links = getLinks(list);
           for (let i = 0; i < 1; i += 1) {
             pullData(`${url}${links[i]}`, pullArray).then(() => {
