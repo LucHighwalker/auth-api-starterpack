@@ -10,14 +10,8 @@ function getOne(model, id) {
   });
 }
 
-function getAll(model, search = null) {
-  const query = {};
-
-  if (search) {
-    query.$text = {
-      $search: search
-    };
-  }
+function getAll(model, search = {}) {
+  const query = search;
 
   return new Promise((resolve, reject) => {
     model.find(query, (error, response) => {
