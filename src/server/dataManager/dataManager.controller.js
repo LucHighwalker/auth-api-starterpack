@@ -3,15 +3,38 @@ const mongoose = require('mongoose');
 
 const GenerateSchema = require('generate-schema');
 
+const ModelModel = require('./model/model');
+
 let dataQueue = {};
 
 function getModel(modelName, data) {
-  try {
-    return mongoose.model(modelName);
-  } catch (error) {
-    const schema = GenerateSchema.mongoose(data);
-    return mongoose.model(modelName, schema);
-  }
+  return new Promise((resolve, reject) => {
+    db.getAll(ModelModel, {
+      name: modelName
+    }).then((models) => {
+      if (models.length > 0) {
+        try {
+          resolve(mongoose.model(modelName));
+        } catch (error) {
+          resolve(mongoose.model(modelName, models[0].skema));
+        }
+      } else {
+        const schema = GenerateSchema.mongoose(data);
+        const newModel = mongoose.model(modelName, schema);
+        const modelModel = new ModelModel({
+          name: modelName,
+          skema: schema
+        });
+        db.save(modelModel).then(() => {
+          resolve(newModel);
+        }).catch((error) => {
+          reject(error);
+        });
+      }
+    }).catch((error) => {
+      reject(error);
+    });
+  });
 }
 
 function queueData(name, data) {
@@ -41,19 +64,22 @@ function generateData(modelName, dataName, save = true) {
       }
     }
 
-    const Model = getModel(modelName, returnData);
-    const dataModel = new Model(returnData);
+    getModel(modelName, returnData).then((Model) => {
+      const dataModel = new Model(returnData);
 
-    if (save) {
-      db.save(dataModel).then(() => {
-        queueReset();
+      if (save) {
+        db.save(dataModel).then(() => {
+          queueReset();
+          resolve(dataModel);
+        }).catch((error) => {
+          reject(error);
+        });
+      } else {
         resolve(dataModel);
-      }).catch((error) => {
-        reject(error);
-      });
-    } else {
-      resolve(dataModel);
-    }
+      }
+    }).catch((error) => {
+      reject(error);
+    });
   });
 }
 

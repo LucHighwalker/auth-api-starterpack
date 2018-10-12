@@ -5,8 +5,11 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router.route('/');
 
-router.get('/scrape', (req, res) => {
-  controller.search('card', 'Consuming Aberration').then((json) => {
+router.get('/search', (req, res) => {
+  const modelName = req.query.model;
+  const searchQuery = req.query.search;
+
+  controller.search(modelName, searchQuery).then((json) => {
     res.json({
       json
     });
