@@ -7,7 +7,7 @@ const modelSchema = new Schema({
     type: String,
     required: true
   },
-  skema: {
+  savedSchema: {
     type: Object,
     required: true
   }

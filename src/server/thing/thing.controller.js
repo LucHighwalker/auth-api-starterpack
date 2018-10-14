@@ -1,6 +1,5 @@
 const request = require('request');
 const cheerio = require('cheerio');
-const mongoose = require('mongoose');
 
 const dm = require('../dataManager/dataManager.controller');
 const db = require('../dataManager/database/database.controller');
@@ -11,22 +10,33 @@ const newQuery = require('../testQueries/multipleSites');
 // TODO replace model creation with that of data manager's
 function search(modelName, searchQuery) {
   return new Promise((resolve, reject) => {
-    try {
-      const model = mongoose.model(modelName);
-      db.getAll(model, {
-        lc_Name: searchQuery.toLowerCase()
-      }).then((data) => {
-        resolve(data);
-      }).catch((error) => {
-        reject(error);
-      });
-    } catch (err) {
-      scrapeData(modelName, searchQuery).then((data) => {
-        resolve(data);
-      }).catch((error) => {
-        reject(error);
-      });
-    }
+    dm.getModel(modelName).then((model) => {
+      if (model !== null) {
+        db.getAll(model, {
+          lc_Name: searchQuery.toLowerCase()
+        }).then((data) => {
+          if (data.length > 0) {
+            resolve(data);
+          } else {
+            scrapeData(modelName, searchQuery).then((newData) => {
+              resolve(newData);
+            }).catch((scrapeError) => {
+              reject(scrapeError);
+            });
+          }
+        }).catch((getError) => {
+          reject(getError);
+        });
+      } else {
+        scrapeData(modelName, searchQuery).then((newData) => {
+          resolve(newData);
+        }).catch((scrapeError) => {
+          reject(scrapeError);
+        });
+      }
+    }).catch((getModelError) => {
+      reject(getModelError);
+    });
   });
 }
 

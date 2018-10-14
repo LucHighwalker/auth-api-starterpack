@@ -7,33 +7,44 @@ const ModelModel = require('./model/model');
 
 let dataQueue = {};
 
-function getModel(modelName, data) {
+function getModel(modelName, data = null) {
   return new Promise((resolve, reject) => {
-    db.getAll(ModelModel, {
-      name: modelName
-    }).then((models) => {
-      if (models.length > 0) {
-        try {
-          resolve(mongoose.model(modelName));
-        } catch (error) {
-          resolve(mongoose.model(modelName, models[0].skema));
+    try {
+      resolve(mongoose.model(modelName));
+    } catch (error) {
+      db.getAll(ModelModel, {
+        name: modelName
+      }).then((models) => {
+        if (models.length > 0) {
+          try {
+            const model = mongoose.model(modelName, models[0].skema);
+            resolve(model);
+          } catch (modelError) {
+            reject(modelError);
+          }
+        } else if (data !== null) {
+          const schema = GenerateSchema.mongoose(data);
+          try {
+            const newModel = mongoose.model(modelName, schema);
+            const modelModel = new ModelModel({
+              name: modelName,
+              savedSchema: schema
+            });
+            db.save(modelModel).then(() => {
+              resolve(newModel);
+            }).catch((saveError) => {
+              reject(saveError);
+            });
+          } catch (newSchemaError) {
+            reject(newSchemaError);
+          }
+        } else {
+          resolve(null);
         }
-      } else {
-        const schema = GenerateSchema.mongoose(data);
-        const newModel = mongoose.model(modelName, schema);
-        const modelModel = new ModelModel({
-          name: modelName,
-          skema: schema
-        });
-        db.save(modelModel).then(() => {
-          resolve(newModel);
-        }).catch((error) => {
-          reject(error);
-        });
-      }
-    }).catch((error) => {
-      reject(error);
-    });
+      }).catch((getError) => {
+        reject(getError);
+      });
+    }
   });
 }
 
@@ -85,5 +96,6 @@ function generateData(modelName, dataName, save = true) {
 
 module.exports = {
   queueData,
-  generateData
+  generateData,
+  getModel
 };

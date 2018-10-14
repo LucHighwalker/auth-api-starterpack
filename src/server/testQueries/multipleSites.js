@@ -9,15 +9,6 @@ module.exports = {
         listIdentifier: ['td', 'a']
       },
       $pullData: [{
-          from: ['.price-card-name-header-name'],
-          get: {
-            type: String,
-            name: 'Name',
-            lowerCase: true,
-            upperCase: true
-          }
-        },
-        {
           from: ['.price-card-statistics-paper', 'table', 'tr', '.text-right'],
           get: {
             type: String,
@@ -46,6 +37,15 @@ module.exports = {
         listIdentifier: ['tr', '.cardItem']
       },
       $pullData: [{
+          from: ['#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay'],
+          get: {
+            type: String,
+            name: 'Name',
+            lowerCase: true,
+            upperCase: true
+          }
+        },
+        {
           from: ['#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_cmcRow', '.value'],
           get: {
             type: String,
