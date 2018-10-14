@@ -14,14 +14,14 @@ function search(modelName, searchQuery) {
     try {
       const model = mongoose.model(modelName);
       db.getAll(model, {
-        Name: searchQuery
+        lc_Name: searchQuery.toLowerCase()
       }).then((data) => {
         resolve(data);
       }).catch((error) => {
         reject(error);
       });
     } catch (err) {
-      scrapeData(searchQuery).then((data) => {
+      scrapeData(modelName, searchQuery).then((data) => {
         resolve(data);
       }).catch((error) => {
         reject(error);
@@ -48,8 +48,6 @@ function pullData($, pullArray) {
     const get = pullArray[i].get;
     const from = genIdentifier(pullArray[i].from);
 
-    let data = {};
-
     switch (get.type) {
       case String:
         if (Array.isArray(get.name)) {
@@ -58,32 +56,39 @@ function pullData($, pullArray) {
           for (let o = 0; o < values.length; o += 1) {
             const name = get.name[o] ? get.name[o] : null;
 
-            data.name = name;
-            data.value = $(values[o]).text();
-            data.value = data.value.trim();
-            dm.queueData('testing', data);
-            data = {};
+            processData($, name, values[o], get.lowerCase, get.upperCase);
           }
         } else {
-          data.name = get.name;
-          data.value = $(from).text();
-          data.value = data.value.trim();
-          dm.queueData('testing', data);
-          data = {};
+          processData($, get.name, from, get.lowerCase, get.upperCase);
         }
-        break;
-
-        // still broken
-      case Float32Array:
-        data.name = get.name;
-        data.value = $(from).text();
-        dm.queueData('testing', data);
-        data = {};
         break;
 
       default:
         break;
     }
+  }
+}
+
+function processData($, name, from, lowerCase = false, upperCase = false) {
+  const value = $(from).text().trim();
+
+  const data = {};
+  data.name = name;
+  data.value = value;
+  dm.queueData('testing', data);
+
+  if (lowerCase) {
+    const lcData = {};
+    lcData.name = `lc_${name}`;
+    lcData.value = value.toLowerCase();
+    dm.queueData('testing', lcData);
+  }
+
+  if (upperCase) {
+    const ucData = {};
+    ucData.name = `uc_${name}`;
+    ucData.value = value.toUpperCase();
+    dm.queueData('testing', ucData);
   }
 }
 
@@ -117,7 +122,7 @@ function processSearch(url, searchObj, searchQuery, pullArray) {
   });
 }
 
-function scrapeData(searchQuery) {
+function scrapeData(modelName, searchQuery) {
   const sites = newQuery.$sites;
   return new Promise((resolve, reject) => {
     const sitesProcessed = [];
@@ -133,8 +138,7 @@ function scrapeData(searchQuery) {
         processSearch(url, searchObj, searchQuery, pull).then(() => { // eslint-disable no-loop-func
           sitesProcessed[i] = 1;
           if (lastSite(sitesProcessed, sites.length)) {
-            // console.log('generating data....')
-            dm.generateData('card', 'testing').then((data) => {
+            dm.generateData(modelName, 'testing').then((data) => {
               resolve(data);
             }).catch((error) => { // eslint-disable-line no-shadow
               reject(error);

@@ -12,7 +12,9 @@ module.exports = {
           from: ['.price-card-name-header-name'],
           get: {
             type: String,
-            name: 'Name'
+            name: 'Name',
+            lowerCase: true,
+            upperCase: true
           }
         },
         {
