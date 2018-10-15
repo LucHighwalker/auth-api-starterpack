@@ -30,7 +30,7 @@ function getUser(token) {
         } else {
           curUser = {
             _id: resp._id,
-            username: resp.username
+            email: resp.email
           };
           resolve(curUser);
         }
