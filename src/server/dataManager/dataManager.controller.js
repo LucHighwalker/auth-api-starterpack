@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const GenerateSchema = require('generate-schema');
 
-const ModelModel = require('./model/model');
+const ModelModel = require('../models/model');
 
 let dataQueue = {};
 
@@ -23,6 +23,8 @@ function getModel(modelName, data = null) {
             reject(modelError);
           }
         } else if (data !== null) {
+          // TODO: Create own schema generation
+          // Why? Because GenerateSchema sometimes turns values into dates.
           const schema = GenerateSchema.mongoose(data);
           try {
             const newModel = mongoose.model(modelName, schema);
